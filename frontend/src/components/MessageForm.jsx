@@ -1,6 +1,6 @@
-import axios from "axios";
-import React, { useState } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
+import api from "../utils/api";
 
 const MessageForm = () => {
   const [firstName, setFirstName] = useState("");
@@ -12,12 +12,11 @@ const MessageForm = () => {
   const handleMessage = async (e) => {
     e.preventDefault();
     try {
-      await axios
+      await api
         .post(
-          "http://localhost:5000/api/v1/message/send",
+          "/api/v1/message/send",
           { firstName, lastName, email, phone, message },
           {
-            withCredentials: true,
             headers: { "Content-Type": "application/json" },
           }
         )
@@ -30,7 +29,7 @@ const MessageForm = () => {
           setMessage("");
         });
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to send message.");
     }
   };
 

@@ -1,8 +1,8 @@
-import axios from "axios";
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
+import api from "../utils/api";
 
 const Doctors = () => {
   const [doctors, setDoctors] = useState([]);
@@ -10,13 +10,10 @@ const Doctors = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const { data } = await axios.get(
-          "http://localhost:5000/api/v1/user/doctors",
-          { withCredentials: true }
-        );
+        const { data } = await api.get("/api/v1/user/doctors");
         setDoctors(data.doctors);
       } catch (error) {
-        toast.error(error.response.data.message);
+        toast.error(error.response?.data?.message || "Failed to load doctors.");
       }
     };
     fetchDoctors();
@@ -32,7 +29,7 @@ const Doctors = () => {
         {doctors && doctors.length > 0 ? (
           doctors.map((element) => {
             return (
-              <div className="card">
+              <div className="card" key={element._id}>
                 <img
                   src={element.docAvatar && element.docAvatar.url}
                   alt="doctor avatar"

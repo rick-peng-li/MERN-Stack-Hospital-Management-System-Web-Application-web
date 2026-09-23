@@ -1,35 +1,43 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { GoCheckCircleFill } from "react-icons/go";
 import { AiFillCloseCircle } from "react-icons/ai";
+import api from "../utils/api";
 
 const Dashboard = () => {
   const [appointments, setAppointments] = useState([]);
+  const [doctorCount, setDoctorCount] = useState(0);
+  const [messageCount, setMessageCount] = useState(0);
 
   useEffect(() => {
-    const fetchAppointments = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const { data } = await axios.get(
-          "http://localhost:5000/api/v1/appointment/getall",
-          { withCredentials: true }
-        );
-        setAppointments(data.appointments);
+        const [appointmentsResponse, doctorsResponse, messagesResponse] =
+          await Promise.all([
+            api.get("/api/v1/appointment/getall"),
+            api.get("/api/v1/user/doctors"),
+            api.get("/api/v1/message/getall"),
+          ]);
+
+        setAppointments(appointmentsResponse.data.appointments);
+        setDoctorCount(doctorsResponse.data.doctors.length);
+        setMessageCount(messagesResponse.data.messages.length);
       } catch (error) {
         setAppointments([]);
+        setDoctorCount(0);
+        setMessageCount(0);
       }
     };
-    fetchAppointments();
+    fetchDashboardData();
   }, []);
 
   const handleUpdateStatus = async (appointmentId, status) => {
     try {
-      const { data } = await axios.put(
-        `http://localhost:5000/api/v1/appointment/update/${appointmentId}`,
+      const { data } = await api.put(
+        `/api/v1/appointment/update/${appointmentId}`,
         { status },
-        { withCredentials: true }
       );
       setAppointments((prevAppointments) =>
         prevAppointments.map((appointment) =>
@@ -40,7 +48,7 @@ const Dashboard = () => {
       );
       toast.success(data.message);
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to update appointment.");
     }
   };
 
@@ -58,25 +66,23 @@ const Dashboard = () => {
             <div className="content">
               <div>
                 <p>Hello ,</p>
-                <h5>
-                  {admin &&
-                    `${admin.firstName} ${admin.lastName}`}{" "}
-                </h5>
+                <h5>{admin && `${admin.firstName} ${admin.lastName}`}</h5>
               </div>
               <p>
-                Lorem ipsum dolor sit, amet consectetur adipisicing elit.
-                Facilis, nam molestias. Eaque molestiae ipsam commodi neque.
-                Assumenda repellendus necessitatibus itaque.
+                Review new requests, keep doctor records current, and respond to
+                incoming patient messages from one dashboard.
               </p>
             </div>
           </div>
           <div className="secondBox">
             <p>Total Appointments</p>
-            <h3>1500</h3>
+            <h3>{appointments.length}</h3>
           </div>
           <div className="thirdBox">
             <p>Registered Doctors</p>
-            <h3>10</h3>
+            <h3>{doctorCount}</h3>
+            <p>Total Messages</p>
+            <h3>{messageCount}</h3>
           </div>
         </div>
         <div className="banner">

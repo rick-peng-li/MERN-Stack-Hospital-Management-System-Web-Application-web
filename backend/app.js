@@ -12,10 +12,18 @@ import appointmentRouter from "./router/appointmentRouter.js";
 const app = express();
 config({ path: "./config.env" });
 
+const allowedOrigins = [
+  process.env.FRONTEND_URL_ONE,
+  process.env.FRONTEND_URL_TWO,
+  process.env.DASHBOARD_URL,
+  "http://localhost:5173",
+  "http://localhost:5174",
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL_ONE, process.env.FRONTEND_URL_TWO],
-    method: ["GET", "POST", "DELETE", "PUT"],
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "DELETE", "PUT"],
     credentials: true,
   })
 );
@@ -30,6 +38,14 @@ app.use(
     tempFileDir: "/tmp/",
   })
 );
+
+app.get("/api/v1/health", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Server is running.",
+  });
+});
+
 app.use("/api/v1/message", messageRouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/appointment", appointmentRouter);

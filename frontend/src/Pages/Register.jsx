@@ -1,11 +1,11 @@
-import axios from "axios";
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { toast } from "react-toastify";
 import { Context } from "../main";
 import { Link, Navigate, useNavigate } from "react-router-dom";
+import api from "../utils/api";
 
 const Register = () => {
-  const { isAuthenticated, setIsAuthenticated } = useContext(Context);
+  const { isAuthenticated, setIsAuthenticated, setUser } = useContext(Context);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -21,18 +21,18 @@ const Register = () => {
   const handleRegistration = async (e) => {
     e.preventDefault();
     try {
-      await axios
+      await api
         .post(
-          "http://localhost:5000/api/v1/user/patient/register",
+          "/api/v1/user/patient/register",
           { firstName, lastName, email, phone, nic, dob, gender, password },
           {
-            withCredentials: true,
             headers: { "Content-Type": "application/json" },
           }
         )
         .then((res) => {
           toast.success(res.data.message);
           setIsAuthenticated(true);
+          setUser(res.data.user);
           navigateTo("/");
           setFirstName("");
           setLastName("");
@@ -58,8 +58,8 @@ const Register = () => {
         <h2>Sign Up</h2>
         <p>Please Sign Up To Continue</p>
         <p>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Placeat culpa
-          voluptas expedita itaque ex, totam ad quod error?
+          Create a patient account to book consultations, keep your personal
+          details ready, and track upcoming visits.
         </p>
         <form onSubmit={handleRegistration}>
           <div>
@@ -126,7 +126,7 @@ const Register = () => {
           >
             <p style={{ marginBottom: 0 }}>Already Registered?</p>
             <Link
-              to={"/signin"}
+              to={"/login"}
               style={{ textDecoration: "none", color: "#271776ca" }}
             >
               Login Now

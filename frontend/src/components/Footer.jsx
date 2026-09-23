@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { FaLocationArrow, FaPhone } from "react-icons/fa6";
 import { MdEmail } from "react-icons/md";
@@ -27,8 +26,8 @@ const Footer = () => {
     },
     {
       id: 5,
-      day: "Monday",
-      time: "3:00 PM - 9:00 PM",
+      day: "Friday",
+      time: "8:00 AM - 8:00 PM",
     },
     {
       id: 6,
@@ -68,15 +67,15 @@ const Footer = () => {
             <h4>Contact</h4>
             <div>
               <FaPhone />
-              <span>999-999-9999</span>
+              <span>+1 (555) 231-9000</span>
             </div>
             <div>
               <MdEmail />
-              <span>zeelab@gmail.com</span>
+              <span>contact@zeecare.example</span>
             </div>
             <div>
               <FaLocationArrow />
-              <span>Toronto, Canada</span>
+              <span>Toronto, Ontario</span>
             </div>
           </div>
         </div>

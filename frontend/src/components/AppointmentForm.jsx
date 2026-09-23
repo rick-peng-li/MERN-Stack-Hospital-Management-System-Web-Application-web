@@ -1,9 +1,12 @@
-import axios from "axios";
-import React, { useEffect } from "react";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { Context } from "../main";
+import api from "../utils/api";
 
 const AppointmentForm = () => {
+  const navigateTo = useNavigate();
+  const { isAuthenticated, user } = useContext(Context);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -33,21 +36,41 @@ const AppointmentForm = () => {
   const [doctors, setDoctors] = useState([]);
   useEffect(() => {
     const fetchDoctors = async () => {
-      const { data } = await axios.get(
-        "http://localhost:5000/api/v1/user/doctors",
-        { withCredentials: true }
-      );
-      setDoctors(data.doctors);
-      console.log(data.doctors);
+      try {
+        const { data } = await api.get("/api/v1/user/doctors");
+        setDoctors(data.doctors);
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to load doctors.");
+      }
     };
     fetchDoctors();
   }, []);
+
+  useEffect(() => {
+    if (!user || !user._id) {
+      return;
+    }
+
+    setFirstName(user.firstName || "");
+    setLastName(user.lastName || "");
+    setEmail(user.email || "");
+    setPhone(user.phone || "");
+    setNic(user.nic || "");
+    setDob(user.dob ? user.dob.substring(0, 10) : "");
+    setGender(user.gender || "");
+  }, [user]);
+
   const handleAppointment = async (e) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      toast.error("Please login as a patient before booking an appointment.");
+      navigateTo("/login");
+      return;
+    }
     try {
       const hasVisitedBool = Boolean(hasVisited);
-      const { data } = await axios.post(
-        "http://localhost:5000/api/v1/appointment/post",
+      const { data } = await api.post(
+        "/api/v1/appointment/post",
         {
           firstName,
           lastName,
@@ -64,26 +87,25 @@ const AppointmentForm = () => {
           address,
         },
         {
-          withCredentials: true,
           headers: { "Content-Type": "application/json" },
         }
       );
       toast.success(data.message);
-      setFirstName(""),
-        setLastName(""),
-        setEmail(""),
-        setPhone(""),
-        setNic(""),
-        setDob(""),
-        setGender(""),
-        setAppointmentDate(""),
-        setDepartment(""),
-        setDoctorFirstName(""),
-        setDoctorLastName(""),
-        setHasVisited(""),
-        setAddress("");
+      setFirstName(user.firstName || "");
+      setLastName(user.lastName || "");
+      setEmail(user.email || "");
+      setPhone(user.phone || "");
+      setNic(user.nic || "");
+      setDob(user.dob ? user.dob.substring(0, 10) : "");
+      setGender(user.gender || "");
+      setAppointmentDate("");
+      setDepartment("Pediatrics");
+      setDoctorFirstName("");
+      setDoctorLastName("");
+      setHasVisited(false);
+      setAddress("");
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to create appointment.");
     }
   };
 

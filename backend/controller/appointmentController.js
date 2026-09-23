@@ -81,13 +81,25 @@ export const postAppointment = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-export const getAllAppointments = catchAsyncErrors(async (req, res, next) => {
+export const getAllAppointments = catchAsyncErrors(async (_req, res) => {
   const appointments = await Appointment.find();
   res.status(200).json({
     success: true,
     appointments,
   });
 });
+
+export const getMyAppointments = catchAsyncErrors(async (req, res) => {
+  const appointments = await Appointment.find({ patientId: req.user._id }).sort({
+    appointment_date: 1,
+  });
+
+  res.status(200).json({
+    success: true,
+    appointments,
+  });
+});
+
 export const updateAppointmentStatus = catchAsyncErrors(
   async (req, res, next) => {
     const { id } = req.params;
@@ -98,7 +110,6 @@ export const updateAppointmentStatus = catchAsyncErrors(
     appointment = await Appointment.findByIdAndUpdate(id, req.body, {
       new: true,
       runValidators: true,
-      useFindAndModify: false,
     });
     res.status(200).json({
       success: true,
@@ -116,5 +127,31 @@ export const deleteAppointment = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "Appointment Deleted!",
+  });
+});
+
+export const cancelMyAppointment = catchAsyncErrors(async (req, res, next) => {
+  const { id } = req.params;
+  const appointment = await Appointment.findById(id);
+
+  if (!appointment) {
+    return next(new ErrorHandler("Appointment Not Found!", 404));
+  }
+
+  if (appointment.patientId.toString() !== req.user._id.toString()) {
+    return next(new ErrorHandler("Not authorized to cancel this appointment!", 403));
+  }
+
+  if (appointment.status === "Accepted") {
+    return next(
+      new ErrorHandler("Accepted appointments cannot be cancelled online!", 400)
+    );
+  }
+
+  await appointment.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    message: "Appointment Cancelled!",
   });
 });

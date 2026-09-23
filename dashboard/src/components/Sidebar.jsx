@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { TiHome } from "react-icons/ti";
 import { RiLogoutBoxFill } from "react-icons/ri";
 import { AiFillMessage } from "react-icons/ai";
@@ -6,24 +6,23 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { FaUserDoctor } from "react-icons/fa6";
 import { MdAddModerator } from "react-icons/md";
 import { IoPersonAddSharp } from "react-icons/io5";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { Context } from "../main";
 import { useNavigate } from "react-router-dom";
+import api from "../utils/api";
 
 const Sidebar = () => {
   const [show, setShow] = useState(false);
 
-  const { isAuthenticated, setIsAuthenticated } = useContext(Context);
+  const { isAuthenticated, setIsAuthenticated, setAdmin } = useContext(Context);
 
   const handleLogout = async () => {
-    await axios
-      .get("http://localhost:5000/api/v1/user/admin/logout", {
-        withCredentials: true,
-      })
+    await api
+      .get("/api/v1/user/admin/logout")
       .then((res) => {
         toast.success(res.data.message);
         setIsAuthenticated(false);
+        setAdmin({});
       })
       .catch((err) => {
         toast.error(err.response.data.message);
